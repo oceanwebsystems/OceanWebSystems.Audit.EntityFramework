@@ -1,0 +1,14 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: AU0001,
+      Title: Empty audit entity,
+      Severity: Warning,
+      WarningLevel: 1,
+      Location: : (4,4)-(7,5),
+      MessageFormat: The generated audit class for the entity '{0}' contains no auditable properties.,
+      Message: The generated audit class for the entity 'NoProperties' contains no auditable properties.,
+      Category: Audit.EntityFramework
+    }
+  ]
+}
