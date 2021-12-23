@@ -18,13 +18,13 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Restore dependencies
-      run: dotnet restore ./OceanWebSystems.Audit.EntityFramework/
+      run: dotnet restore ./
     - name: Build
-      run: dotnet build --no-restore ./OceanWebSystems.Audit.EntityFramework/
+      run: dotnet build --no-restore ./
     - name: Test
-      run: dotnet test --no-build --verbosity normal ./OceanWebSystems.Audit.EntityFramework/
+      run: dotnet test --no-build --verbosity normal ./
     - name: Publish
       uses: rohith/publish-nuget@v2
       with:
-          PROJECT_FILE_PATH: ./OceanWebSystems.Audit.EntityFramework/OceanWebSystems.Audit.EntityFramework/OceanWebSystems.Audit.EntityFramework.csproj
+          PROJECT_FILE_PATH: ./OceanWebSystems.Audit.EntityFramework/OceanWebSystems.Audit.EntityFramework.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
