@@ -8,6 +8,17 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>true</ImplicitUsings>
 		<LangVersion>Latest</LangVersion>
+		<Version>1.0.0-alpha1</Version>
+		<Authors>Stuart Whiteford</Authors>
+		<Company>OceanWeb Systems</Company>
+		<Description>Code generator to generate audit table entities for the Audit.NET framework.</Description>
+		<Copyright>Copyright © OceanWeb Systems Limited 2021. All rights reserved.</Copyright>
+		<PackageIcon>oceanweb-artwork-orb.png</PackageIcon>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageProjectUrl>https://github.com/oceanwebsystems/auditentityframework</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/oceanwebsystems/auditentityframework.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>ef audit</PackageTags>
 	</PropertyGroup>
 
 	<!-- The following libraries include the source generator interfaces and types we need -->
@@ -22,6 +33,16 @@
 	<!-- This ensures the library will be packaged as a source generator when we use `dotnet pack` -->
 	<ItemGroup>
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="..\..\README.md">
+		  <Pack>True</Pack>
+		  <PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+	<ItemGroup>
+	  <None Update="oceanweb-artwork-orb.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	</ItemGroup>
 
 </Project>
