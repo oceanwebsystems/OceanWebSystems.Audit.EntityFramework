@@ -7,7 +7,7 @@ using OceanWebSystems.Audit.EntityFramework;
 
 namespace OceanWebSystems.Data.Models
 {
-	public class WithPropertiesAudit : AuditBase
+	public partial class WithPropertiesAudit : AuditBase
 	{
 		[Key]
 		public int AuditId { get; set; }

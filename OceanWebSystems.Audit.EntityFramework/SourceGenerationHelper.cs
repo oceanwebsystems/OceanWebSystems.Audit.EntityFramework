@@ -1,7 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
+using Microsoft.CodeAnalysis;
 
 namespace OceanWebSystems.Audit.EntityFramework
 {
@@ -22,6 +20,8 @@ namespace OceanWebSystems.Audit.EntityFramework
         int? UserId { get; set; }
 
         string UserName { get; set; }
+
+        string UserDisplayName { get; set; }
     }
 }
 ";
@@ -41,6 +41,8 @@ namespace OceanWebSystems.Audit.EntityFramework
         public int? UserId { get; set; }
 
         public string UserName { get; set; }
+
+        public string UserDisplayName { get; set; }
     }
 }
 ";
@@ -63,7 +65,7 @@ namespace OceanWebSystems.Audit.EntityFramework
             sb.AppendLine();
             sb.AppendLine($"namespace {ns}");
             sb.AppendLine("{");
-            sb.AppendLine($"\tpublic class {name}Audit : AuditBase");
+            sb.AppendLine($"\tpublic partial class {name}Audit : AuditBase");
             sb.AppendLine("\t{");
 
             sb.AppendLine("\t\t[Key]");

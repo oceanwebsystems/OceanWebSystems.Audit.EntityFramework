@@ -14,5 +14,7 @@ namespace OceanWebSystems.Audit.EntityFramework
         int? UserId { get; set; }
 
         string UserName { get; set; }
+
+        string UserDisplayName { get; set; }
     }
 }
