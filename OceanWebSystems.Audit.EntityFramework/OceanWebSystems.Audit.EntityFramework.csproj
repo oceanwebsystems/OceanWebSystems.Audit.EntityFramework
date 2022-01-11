@@ -8,7 +8,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>true</ImplicitUsings>
 		<LangVersion>Latest</LangVersion>
-		<Version>1.0.0-alpha3</Version>
+		<Version>1.0.0-alpha4</Version>
 		<Authors>Stuart Whiteford</Authors>
 		<Company>OceanWeb Systems</Company>
 		<Description>Code generator to generate audit table entities for the Audit.NET framework.</Description>

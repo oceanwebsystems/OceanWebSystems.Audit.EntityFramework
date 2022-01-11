@@ -13,6 +13,16 @@ namespace OceanWebSystems.Audit.EntityFramework
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
+            // Add the configuration options to the compilation.
+            context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
+                "AuditConfigurationOptions.g.cs",
+                SourceText.From(SourceGenerationHelper.Options, Encoding.UTF8)));
+
+            // Add the configuration attribute to the compilation.
+            context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
+                "AuditConfigurationAttribute.g.cs",
+                SourceText.From(SourceGenerationHelper.Attribute, Encoding.UTF8)));
+
             // Add the interface to the compilation.
             context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
                 "IAudit.g.cs",
