@@ -12,7 +12,7 @@
 		<Authors>Stuart Whiteford</Authors>
 		<Company>OceanWeb Systems</Company>
 		<Description>Code generator to generate audit table entities for the Audit.NET framework.</Description>
-		<Copyright>Copyright © OceanWeb Systems Limited 2021. All rights reserved.</Copyright>
+		<Copyright>Copyright © OceanWeb Systems Limited 2022. All rights reserved.</Copyright>
 		<PackageIcon>oceanweb-artwork-orb.png</PackageIcon>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageProjectUrl>https://github.com/oceanwebsystems/auditentityframework</PackageProjectUrl>
