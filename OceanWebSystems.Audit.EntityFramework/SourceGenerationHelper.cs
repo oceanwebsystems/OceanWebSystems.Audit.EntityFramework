@@ -35,10 +35,10 @@ namespace OceanWebSystems.Audit.EntityFramework
     public class AuditConfigurationAttribute : Attribute
     {
         public AuditConfigurationAttribute(
-            string? tableNamePrefix = """",
-            string? tableNameSuffix = ""AuditRecord"",
-            string? softDeleteColumnName = ""IsDeleted"",
-            bool? softDeleteDeletedValue = true)
+            string tableNamePrefix = """",
+            string tableNameSuffix = ""AuditRecord"",
+            string softDeleteColumnName = ""IsDeleted"",
+            bool softDeleteDeletedValue = true)
         {
             TableNamePrefix = tableNamePrefix;
             TableNameSuffix = tableNameSuffix;
@@ -46,13 +46,12 @@ namespace OceanWebSystems.Audit.EntityFramework
             SoftDeleteDeletedValue = softDeleteDeletedValue;
         }
 
-        public AuditConfigurationAttribute(
-            AuditConfigurationOptions configOptions)
-            : this(configOptions.TableNamePrefix,
-                  configOptions.TableNameSuffix,
-                  configOptions.SoftDeleteColumnName,
-                  configOptions.SoftDeleteDeletedValue)
+        public AuditConfigurationAttribute(AuditConfigurationOptions configOptions)
         {
+            TableNamePrefix = configOptions.TableNamePrefix;
+            TableNameSuffix = configOptions.TableNameSuffix;
+            SoftDeleteColumnName = configOptions.SoftDeleteColumnName;
+            SoftDeleteDeletedValue = configOptions.SoftDeleteDeletedValue;
         }
 
         public string? TableNamePrefix { get; }
