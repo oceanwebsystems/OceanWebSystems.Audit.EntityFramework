@@ -9,6 +9,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Audit.EntityFramework" Version="19.0.3" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.1" />
 		<PackageReference Include="Verify.XUnit" Version="14.7.0" />
 		<PackageReference Include="Verify.SourceGenerators" Version="1.2.0" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />

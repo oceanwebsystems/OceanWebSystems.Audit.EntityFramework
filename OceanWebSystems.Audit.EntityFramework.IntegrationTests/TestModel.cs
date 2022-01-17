@@ -5,7 +5,7 @@ using Audit.EntityFramework;
 namespace OceanWebSystems.Audit.EntityFramework.IntegrationTests
 {
     [AuditInclude]
-    public class TestModel
+    public partial class TestModel
     {
         [Key]
         public int Id { get; set; }
