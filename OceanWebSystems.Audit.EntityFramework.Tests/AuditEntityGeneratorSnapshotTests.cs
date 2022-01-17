@@ -112,5 +112,177 @@ namespace OceanWebSystems.Data.Models
             // Pass the source code to our helper and snapshot test the output.
             return TestHelper.Verify(source);
         }
+
+        [Fact]
+        public Task WithProperties_WithAuditDbContext_NoPrefix_NoSuffix()
+        {
+            // The source code to test.
+            var source = @"using System;
+using System.ComponentModel.DataAnnotations;
+using Audit.EntityFramework;
+using Microsoft.EntityFrameworkCore;
+using OceanWebSystems.Audit.EntityFramework;
+
+namespace OceanWebSystems.Data.Context
+{
+    [AuditConfiguration]
+    public partial class TestDbContext : AuditDbContext
+    {
+        public TestDbContext()
+        {
+        }
+
+        public TestDbContext(DbContextOptions<TpmDbContext> options)
+            : base(options)
+        {
+        }
+    }
+}
+
+namespace OceanWebSystems.Data.Models
+{
+    [AuditInclude]
+    public partial class TestModel
+    {
+        [Key]
+        public int Id { get; set; }
+
+        public string Text { get; set; } = string.Empty;
+    }
+}
+";
+
+            // Pass the source code to our helper and snapshot test the output.
+            return TestHelper.Verify(source);
+        }
+
+    [Fact]
+    public Task WithProperties_WithAuditDbContext_AuditSuffix()
+    {
+        // The source code to test.
+        var source = @"using System;
+using System.ComponentModel.DataAnnotations;
+using Audit.EntityFramework;
+using Microsoft.EntityFrameworkCore;
+using OceanWebSystems.Audit.EntityFramework;
+
+namespace OceanWebSystems.Data.Context
+{
+    [AuditConfiguration(tableNameSuffix: ""AuditRecord"")]
+    public partial class TestDbContext : AuditDbContext
+    {
+        public TestDbContext()
+        {
+        }
+
+        public TestDbContext(DbContextOptions<TpmDbContext> options)
+            : base(options)
+        {
+        }
+    }
+}
+
+namespace OceanWebSystems.Data.Models
+{
+    [AuditInclude]
+    public partial class TestModel
+    {
+        [Key]
+        public int Id { get; set; }
+
+        public string Text { get; set; } = string.Empty;
+    }
+}
+";
+
+            // Pass the source code to our helper and snapshot test the output.
+            return TestHelper.Verify(source);
+        }
+
+    [Fact]
+    public Task WithProperties_WithAuditDbContext_AuditPrefix()
+    {
+        // The source code to test.
+        var source = @"using System;
+using System.ComponentModel.DataAnnotations;
+using Audit.EntityFramework;
+using Microsoft.EntityFrameworkCore;
+using OceanWebSystems.Audit.EntityFramework;
+
+namespace OceanWebSystems.Data.Context
+{
+    [AuditConfiguration(tableNamePrefix: ""Audit"")]
+    public partial class TestDbContext : AuditDbContext
+    {
+        public TestDbContext()
+        {
+        }
+
+        public TestDbContext(DbContextOptions<TpmDbContext> options)
+            : base(options)
+        {
+        }
+    }
+}
+
+namespace OceanWebSystems.Data.Models
+{
+    [AuditInclude]
+    public partial class TestModel
+    {
+        [Key]
+        public int Id { get; set; }
+
+        public string Text { get; set; } = string.Empty;
+    }
+}
+";
+
+            // Pass the source code to our helper and snapshot test the output.
+            return TestHelper.Verify(source);
+        }
+
+    [Fact]
+    public Task WithProperties_WithAuditDbContext_AuditPrefix_RecordSuffix()
+    {
+        // The source code to test.
+        var source = @"using System;
+using System.ComponentModel.DataAnnotations;
+using Audit.EntityFramework;
+using Microsoft.EntityFrameworkCore;
+using OceanWebSystems.Audit.EntityFramework;
+
+namespace OceanWebSystems.Data.Context
+{
+    [AuditConfiguration(tableNamePrefix, ""Audit"", tableNameSuffix: ""Record"")]
+    public partial class TestDbContext : AuditDbContext
+    {
+        public TestDbContext()
+        {
+        }
+
+        public TestDbContext(DbContextOptions<TpmDbContext> options)
+            : base(options)
+        {
+        }
+    }
+}
+
+namespace OceanWebSystems.Data.Models
+{
+    [AuditInclude]
+    public partial class TestModel
+    {
+        [Key]
+        public int Id { get; set; }
+
+        public string Text { get; set; } = string.Empty;
+    }
+}
+";
+
+            // Pass the source code to our helper and snapshot test the output.
+            return TestHelper.Verify(source);
+        }
     }
 }

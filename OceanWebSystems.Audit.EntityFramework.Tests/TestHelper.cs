@@ -3,6 +3,7 @@ using System.Runtime;
 using Audit.EntityFramework;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.EntityFrameworkCore;
 using VerifyXunit;
 
 namespace OceanWebSystems.Audit.EntityFramework.Tests
@@ -51,7 +52,8 @@ namespace OceanWebSystems.Audit.EntityFramework.Tests
                     MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.Core.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.Private.CoreLib.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.Runtime.dll")),
-                    MetadataReference.CreateFromFile(typeof(AuditIncludeAttribute).Assembly.Location)
+                    MetadataReference.CreateFromFile(typeof(AuditIncludeAttribute).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(DbContext).Assembly.Location)
                 );
 
                 return references;

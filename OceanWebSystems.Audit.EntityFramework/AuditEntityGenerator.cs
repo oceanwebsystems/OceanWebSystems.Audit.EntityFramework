@@ -1,6 +1,9 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections;
+using System.Collections.Immutable;
+using System.Collections.Specialized;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -9,7 +12,9 @@ namespace OceanWebSystems.Audit.EntityFramework
     [Generator]
     public class AuditEntityGenerator : IIncrementalGenerator
     {
-        private const string AuditIncludeAttribute = "Audit.EntityFramework.AuditIncludeAttribute";
+        private const string AuditDbContextName = "Audit.EntityFramework.AuditDbContext";
+        private const string AuditIncludeAttributeName = "Audit.EntityFramework.AuditIncludeAttribute";
+        private const string AuditConfigurationAttributeName = "OceanWebSystems.Audit.EntityFramework.AuditConfigurationAttribute";
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
@@ -25,12 +30,12 @@ namespace OceanWebSystems.Audit.EntityFramework
 
             // Add the interface to the compilation.
             context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
-                "IAudit.g.cs",
+                "IAuditRecord.g.cs",
                 SourceText.From(SourceGenerationHelper.Interface, Encoding.UTF8)));
 
             // Add the base class to the compilation.
             context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
-                "AuditBase.g.cs",
+                "AuditRecordBase.g.cs",
                 SourceText.From(SourceGenerationHelper.BaseClass, Encoding.UTF8)));
 
             // Do a simple filter for classes.
@@ -70,8 +75,9 @@ namespace OceanWebSystems.Audit.EntityFramework
                     INamedTypeSymbol attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                     string fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                    // Is the attribute the [AuditInclude] attribute?
-                    if (fullName == AuditIncludeAttribute)
+                    // Is the attribute the [AuditInclude] or [AuditConfiguration] attribute?
+                    if (fullName == AuditIncludeAttributeName ||
+                        fullName == AuditConfigurationAttributeName)
                     {
                         // Return the class.
                         return classDeclarationSyntax;
@@ -94,10 +100,15 @@ namespace OceanWebSystems.Audit.EntityFramework
             // I'm not sure if this is actually necessary, but [LoggerMessage] does it, so seems like a good idea!
             IEnumerable<ClassDeclarationSyntax> distinctClasses = classes.Distinct();
 
-            // Generate the audit classes.
+            string? tableNamePrefix = string.Empty;
+            string? tableNameSuffix = string.Empty;
+
+            ClassDeclarationSyntax? auditDbContextClass = null;
+            List<ClassDeclarationSyntax> auditEntityClasses = new();
+
+            // Separate the class types (AuditDbContext and entities).
             foreach (var classDeclaration in distinctClasses)
             {
-                var allClassSymbols = new List<ISymbol>();
                 var model = compilation.GetSemanticModel(classDeclaration.SyntaxTree, true);
                 var type = model.GetDeclaredSymbol(classDeclaration) as ITypeSymbol;
 
@@ -106,26 +117,163 @@ namespace OceanWebSystems.Audit.EntityFramework
                     continue;
                 }
 
-                var symbols = model.LookupSymbols(0, type.ContainingNamespace, type.Name);
+                var isAudit = InheritsFrom(type, AuditDbContextName);
+                if (isAudit)
+                {                    
+                    auditDbContextClass = classDeclaration;
+                }
+                else
+                {
+                    auditEntityClasses.Add(classDeclaration);
+                }
+            }
+
+            if (auditDbContextClass != null)
+            {
+                var model = compilation.GetSemanticModel(auditDbContextClass.SyntaxTree, true);
+
+                // Grab the attribute parameters.
+                INamedTypeSymbol? classSymbol = model.GetDeclaredSymbol(auditDbContextClass);
+                if (classSymbol != null)
+                {
+                    foreach (AttributeData attributeData in classSymbol.GetAttributes())
+                    {
+                        var constructorArgs = attributeData.ConstructorArguments;
+                        if (constructorArgs.Any())
+                        {
+                            // Make sure we don't have any errors.
+                            foreach (TypedConstant arg in constructorArgs)
+                            {
+                                if (arg.Kind == TypedConstantKind.Error)
+                                {
+                                    // Have an error, so don't try and do any generation.
+                                    return;
+                                }
+                            }
+
+                            if (constructorArgs.Count() == 4)
+                            {
+                                if (!constructorArgs[0].IsNull)
+                                {
+                                    tableNamePrefix = constructorArgs[0].Value?.ToString();
+                                }
+
+                                if (!constructorArgs[1].IsNull)
+                                {
+                                    tableNameSuffix = constructorArgs[1].Value?.ToString();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            var dbContextProperties = new Hashtable();
+
+            // Generate the audit classes.
+            if (auditEntityClasses.Any())
+            {
+                dbContextProperties = GenerateAuditEntityClasses(compilation, auditEntityClasses, context, tableNamePrefix, tableNameSuffix);
+            }
+
+            // Generate the partial DbContext class.
+            if (auditDbContextClass != null && dbContextProperties.Count > 0)
+            {
+                GenerateAuditDbContextClass(compilation, auditDbContextClass, context, dbContextProperties);
+            }
+        }
+
+        private static void GenerateAuditDbContextClass(
+            Compilation compilation,
+            ClassDeclarationSyntax auditDbContextClass,
+            SourceProductionContext context,
+            Hashtable properties)
+        {
+            var classModel = compilation.GetSemanticModel(auditDbContextClass.SyntaxTree, true);
+            var classType = classModel.GetDeclaredSymbol(auditDbContextClass) as ITypeSymbol;
+            if (classType != null)
+            {
+                var code = SourceGenerationHelper.GenerateDbContextClass(classType, properties);
+                context.AddSource($"{classType.Name}.g.cs", SourceText.From(code, Encoding.UTF8));
+            }
+        }
+
+        private static Hashtable GenerateAuditEntityClasses(
+            Compilation compilation,
+            List<ClassDeclarationSyntax> auditEntityClasses,
+            SourceProductionContext context,
+            string tableNamePrefix,
+            string tableNameSuffix)
+        {
+            var dbContextProperties = new Hashtable();
+
+            foreach (var classDeclaration in auditEntityClasses)
+            {
+                var classProperties = new List<ISymbol>();
+                var classModel = compilation.GetSemanticModel(classDeclaration.SyntaxTree, true);
+                var classType = classModel.GetDeclaredSymbol(classDeclaration) as ITypeSymbol;
+
+                if (classType is null)
+                {
+                    continue;
+                }
+
+                // Get the properties of the class.
+                var symbols = classModel.LookupSymbols(0, classType.ContainingNamespace, classType.Name);
                 if (symbols != null && symbols.Any())
                 {
                     foreach (var symbol in symbols)
                     {
-                        var members = type.GetMembers().Where(m => m.Kind == SymbolKind.Property && m.DeclaredAccessibility == Accessibility.Public);
-                        allClassSymbols.AddRange(members);
+                        var members = classType.GetMembers().Where(m => m.Kind == SymbolKind.Property && m.DeclaredAccessibility == Accessibility.Public);
+                        classProperties.AddRange(members);
                     }
                 }
 
                 // Warn if we're about to create a class with no auditable properties.
-                if (!allClassSymbols.Any())
+                if (!classProperties.Any())
                 {
                     context.ReportDiagnostic(DiagnosticHelper.CreateEmptyAuditEntityDiagnostic(classDeclaration));
                 }
 
-                // Generate the source code and add it to the output.
-                var code = SourceGenerationHelper.GenerateAuditClass(type, allClassSymbols);
-                context.AddSource($"{type.Name}Audit.g.cs", SourceText.From(code, Encoding.UTF8));
+                dbContextProperties.Add(
+                    GenerateAuditEntityClass(classType, classProperties, context, tableNamePrefix, tableNameSuffix),
+                    classType.ContainingNamespace.ToString());
             }
+
+            return dbContextProperties;
+        }
+
+        private static string GenerateAuditEntityClass(
+            ITypeSymbol classType,
+            List<ISymbol> classProperties,
+            SourceProductionContext context,
+            string tableNamePrefix,
+            string tableNameSuffix)
+        {            
+            var code = SourceGenerationHelper.GenerateAuditClass(classType, classProperties, tableNamePrefix, tableNameSuffix);
+            var auditEntityName = $"{tableNamePrefix}{classType.Name}{tableNameSuffix}";
+            context.AddSource($"{auditEntityName}.g.cs", SourceText.From(code, Encoding.UTF8));
+            return $"public virtual DbSet<{auditEntityName}> {auditEntityName}s {{ get; set; }}";
+        }
+
+        private static bool InheritsFrom(ITypeSymbol symbol, string expectedParentTypeName)
+        {
+            while (true)
+            {
+                if (symbol.ToString().Equals(expectedParentTypeName))
+                {
+                    return true;
+                }
+
+                if (symbol.BaseType != null)
+                {
+                    symbol = symbol.BaseType;
+                    continue;
+                }
+                break;
+            }
+
+            return false;
         }
     }
 }
